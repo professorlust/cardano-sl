@@ -113,10 +113,11 @@ in writeScript "demo-cluster" ''
   system_start=$((`date +%s` + 15))
   echo "Using system start time "$system_start
 
-
-
   # Remove previous state
-  rm -rf ${stateDir} || true
+  # Inside a docker image the stateDir might be a mounted volume and
+  # therefore impossible to remove.
+  rm -rf ${stateDir}/* || true
+  rmdir ${stateDir} >& /dev/null || true
   mkdir -p ${stateDir}/logs
 
   ${if launchGenesis then ''
