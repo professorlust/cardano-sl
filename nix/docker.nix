@@ -126,4 +126,4 @@ in
     tag = "${version}-${environment}${if (type != null) then "-" + type else ""}";
     fromImage = environmentImage;
     config = mkConfig type;
-  }
+  } // { inherit version; }

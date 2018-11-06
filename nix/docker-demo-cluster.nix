@@ -77,6 +77,7 @@ let
 in
 
   demoClusterImage // {
+    inherit version;
     # pass through demoCluster attribute for debugging
     script = demoCluster';
   }

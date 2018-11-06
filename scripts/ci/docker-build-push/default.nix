@@ -42,7 +42,13 @@ in
 
   '' + concatMapStringsSep "\n" (image: ''
     echo "Loading ${image}"
-    tagged="$fullrepo:${image.imageTag}"
+    branch="''${BUILDKITE_BRANCH:-}"
+    if [[ "$branch" = master ]] || [[ "$branch" = release/* ]]; then
+      tag="${image.imageTag}"
+    else
+      tag="$(echo ${image.imageTag} | sed -e s/${image.version}/develop/)"
+    fi
+    tagged="$fullrepo:$tag"
     docker load -i "${image}"
     if [ "$tagged" != "${image.imageName}:${image.imageTag}" ]; then
       docker tag "${image.imageName}:${image.imageTag}" "$tagged"
