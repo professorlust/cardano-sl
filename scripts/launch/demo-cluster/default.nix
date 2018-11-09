@@ -110,8 +110,6 @@ in writeScript "demo-cluster" ''
     echo "Stopped all Cardano processes, exiting with code $EXIT_STATUS!"
     exit $EXIT_STATUS
   }
-  system_start=$((`date +%s` + 15))
-  echo "Using system start time "$system_start
 
   # Remove previous state
   # Inside a docker image the stateDir might be a mounted volume and
@@ -119,6 +117,9 @@ in writeScript "demo-cluster" ''
   rm -rf ${stateDir}/* || true
   rmdir ${stateDir} >& /dev/null || true
   mkdir -p ${stateDir}/logs
+
+  system_start=$((`date +%s` + 15))
+  echo "Using system start time "$system_start
 
   ${if launchGenesis then ''
     echo "Creating genesis data and keys using external method..."
