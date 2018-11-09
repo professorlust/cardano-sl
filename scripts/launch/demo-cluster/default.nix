@@ -144,7 +144,7 @@ in writeScript "demo-cluster" ''
   for i in {0..${builtins.toString (numRelayNodes - 1)}}
   do
     echo -e "loggerTree:\n  severity: Debug+\n  file: relay$i.log" > ${stateDir}/logs/log-config-relay$i.yaml
-    node_args="--db-path ${stateDir}/relay-db$i --rebuild-db --listen ${relayBindAddr}:$((3100 + i)) --json-log ${stateDir}/logs/relay$i.json --logs-prefix ${stateDir}/logs --log-config ${stateDir}/logs/log-config-relay$i.yaml --system-start $system_start --metrics +RTS -N2 -qg -A1m -I0 -T -RTS --node-id relay$i --topology ${topologyFile} --configuration-file $config_files/configuration.yaml --configuration-key ${configurationKey}"
+    node_args="--db-path ${stateDir}/relay-db$i --rebuild-db --address 127.0.0.1:$((3100 + i)) --listen ${relayBindAddr}:$((3100 + i)) --json-log ${stateDir}/logs/relay$i.json --logs-prefix ${stateDir}/logs --log-config ${stateDir}/logs/log-config-relay$i.yaml --system-start $system_start --metrics +RTS -N2 -qg -A1m -I0 -T -RTS --node-id relay$i --topology ${topologyFile} --configuration-file $config_files/configuration.yaml --configuration-key ${configurationKey}"
     echo Launching relay node $i: cardano-node-simple $node_args
     ${stackExec}cardano-node-simple $node_args &> ${stateDir}/logs/relay$i.output &
     relay_pid[$i]=$!
