@@ -125,4 +125,8 @@ in pkgs.lib.fix (jobsets: mapped // {
       jobsets.tests.swaggerSchemaValidation
     ];
   });
-} // (builtins.listToAttrs (map makeRelease [ "mainnet" "staging" ])))
+}
+// (let pkgs = import ./nix/pkgs.nix { nixpkgs = import fixedNixpkgs; }; in {
+  nix-tools.cardano-sl = pkgs.cardano-sl.components.library;
+})
+// (builtins.listToAttrs (map makeRelease [ "mainnet" "staging" ])))
