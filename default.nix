@@ -288,7 +288,18 @@ let
           cardano-sl-x509;
         inherit (self.haskellPackages)
           cardano-report-server; }
-
+  # nix-tools setup
+  // (with builtins; with pkgs.lib; let nix-tools = import ./nix/pkgs.nix { nixpkgs = _: pkgs; }; in
+  {
+    nix-tools = { _raw = nix-tools; }
+      # some shorthands
+      // (mapAttrs (k: v: if   v.components ? "library"
+                          then v.components.library
+                          else null) nix-tools)
+      // { exes = mapAttrs (k: v: if   length (attrValues v.components.exes) > 0
+                                  then pkgs.symlinkJoin { name = "${k}-exes"; paths = attrValues v.components.exes; }
+                                  else null) nix-tools; };
+  })
   );
 
 in

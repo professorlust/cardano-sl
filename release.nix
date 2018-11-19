@@ -9,7 +9,7 @@ in
   , skipDocker ? false
   , skipPackages ? []
   , nixpkgsArgs ? {
-      config = { allowUnfree = false; inHydra = true; };
+      config = (import ./nix/config.nix // { allowUnfree = false; inHydra = true; });
       gitrev = cardano.rev;
       inherit fasterBuild;
     }
@@ -66,6 +66,33 @@ let
     shells.cabal = supportedSystems;
     shells.stack = supportedSystems;
     stack2nix = supportedSystems;
+
+    # nix-tools toolchain: Libraries
+    nix-tools.cardano-sl            = supportedSystems;
+    nix-tools.cardano-sl-auxx       = supportedSystems;
+    nix-tools.cardano-sl-chain      = supportedSystems;
+    nix-tools.cardano-sl-core       = supportedSystems;
+    nix-tools.cardano-sl-crypto     = supportedSystems;
+    nix-tools.cardano-sl-db         = supportedSystems;
+    nix-tools.cardano-sl-generator  = supportedSystems;
+    nix-tools.cardano-sl-infra      = supportedSystems;
+    nix-tools.cardano-sl-networking = supportedSystems;
+    nix-tools.cardano-sl-tools      = supportedSystems;
+    nix-tools.cardano-sl-util       = supportedSystems;
+    nix-tools.cardano-sl-wallet-new = supportedSystems;
+    nix-tools.cardano-sl-x509       = supportedSystems;
+
+    # nix-tools toolchain: Executables
+    # these will usually implicitly build their
+    # library as they depend on it.
+    nix-tools.exes.cardano-sl-tools             = supportedSystems;
+    nix-tools.exes.cardano-sl-generator         = supportedSystems;
+    nix-tools.exes.cardano-sl-tools-post-mortem = supportedSystems;
+    nix-tools.exes.cardano-sl-wallet-new        = supportedSystems;
+
+    # nix-tools toolchain: Tests
+    # TBD
+
   } skipPackages;
   platforms' = removeAttrs {
     connectScripts.mainnet.wallet   = [ "x86_64-linux" "x86_64-darwin" ];
@@ -126,7 +153,4 @@ in pkgs.lib.fix (jobsets: mapped // {
     ];
   });
 }
-// (let pkgs = import ./nix/pkgs.nix { nixpkgs = import fixedNixpkgs; }; in {
-  nix-tools.cardano-sl = pkgs.cardano-sl.components.library;
-})
 // (builtins.listToAttrs (map makeRelease [ "mainnet" "staging" ])))
