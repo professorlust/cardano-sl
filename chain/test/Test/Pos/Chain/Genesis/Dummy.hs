@@ -5,6 +5,7 @@ module Test.Pos.Chain.Genesis.Dummy
        , dummyConfigStartTime
        , dummyProtocolConstants
        , dummyK
+       , dummyEpochOrSlot
        , dummyEpochSlots
        , dummySlotSecurityParam
        , dummyGenesisInitializer
