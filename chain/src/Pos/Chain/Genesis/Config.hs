@@ -44,6 +44,7 @@ import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BSL
 import           Data.Coerce (coerce)
 import qualified Data.HashMap.Strict as HM
+import           Numeric.Natural (Natural)
 import           System.FilePath ((</>))
 import           System.IO.Error (userError)
 import qualified Text.JSON.Canonical as Canonical
@@ -69,7 +70,7 @@ import           Pos.Core.Common (BlockCount, SharedSeed)
 import           Pos.Core.ProtocolConstants (ProtocolConstants (..),
                      pcBlkSecurityParam, pcChainQualityThreshold, pcEpochSlots,
                      pcSlotSecurityParam, vssMaxTTL, vssMinTTL)
-import           Pos.Core.Slotting (SlotCount, Timestamp)
+import           Pos.Core.Slotting (EpochOrSlot (..), SlotCount, Timestamp)
 import           Pos.Crypto (ProtocolMagic (..), RequiresNetworkMagic)
 import           Pos.Crypto.Hashing (Hash, hashRaw, unsafeHash)
 import           Pos.Util.Json.Canonical (SchemaError)
@@ -168,6 +169,8 @@ data Config = Config
     , configGeneratedSecrets  :: Maybe GeneratedSecrets
     , configGenesisData       :: GenesisData
     , configGenesisHash       :: GenesisHash
+    , configEpochCutoff       :: EpochOrSlot
+    , configEpochAttSize      :: Natural
     }
 
 configK :: Config -> Int
@@ -263,9 +266,11 @@ mkConfigFromStaticConfig
     -- ^ Optional seed which overrides one from testnet initializer if
     -- provided.
     -> RequiresNetworkMagic
+    -> EpochOrSlot
+    -> Natural
     -> StaticConfig
     -> m Config
-mkConfigFromStaticConfig confDir mSystemStart mSeed rnm = \case
+mkConfigFromStaticConfig confDir mSystemStart mSeed rnm eos attSize  = \case
     -- If a 'GenesisData' source file is given, we check its hash against the
     -- given expected hash, parse it, and use the GenesisData to fill in all of
     -- the obligations.
@@ -303,6 +308,8 @@ mkConfigFromStaticConfig confDir mSystemStart mSeed rnm = \case
             , configGeneratedSecrets  = Nothing
             , configGenesisData       = overriddenGenesisData
             , configGenesisHash       = GenesisHash $ coerce theGenesisHash
+            , configEpochCutoff       = eos
+            , configEpochAttSize      = attSize
             }
 
     -- If a 'GenesisSpec' is given, we ensure we have a start time (needed if
@@ -327,7 +334,7 @@ mkConfigFromStaticConfig confDir mSystemStart mSeed rnm = \case
             -- specified in Configuration.
             overriddenSpec = updateGS theSpec
 
-        pure $ mkConfig theSystemStart overriddenSpec
+        pure $ mkConfig theSystemStart overriddenSpec eos attSize
   where
     updateGD :: GenesisData -> GenesisData
     updateGD gd = gd { gdProtocolConsts = updateGPC (gdProtocolConsts gd) }
@@ -341,13 +348,15 @@ mkConfigFromStaticConfig confDir mSystemStart mSeed rnm = \case
     updatePM :: ProtocolMagic -> ProtocolMagic
     updatePM pm = pm { getRequiresNetworkMagic = rnm }
 
-mkConfig :: Timestamp -> GenesisSpec -> Config
-mkConfig theSystemStart spec = Config
+mkConfig :: Timestamp -> GenesisSpec -> EpochOrSlot -> Natural -> Config
+mkConfig theSystemStart spec eos attSize = Config
     { configProtocolMagic     = pm
     , configProtocolConstants = pc
     , configGeneratedSecrets  = Just ggdSecrets
     , configGenesisData       = genesisData
     , configGenesisHash       = genesisHash
+    , configEpochCutoff       = eos
+    , configEpochAttSize      = attSize
     }
   where
     pm = gpcProtocolMagic (gsProtocolConstants spec)

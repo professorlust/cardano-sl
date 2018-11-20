@@ -136,9 +136,11 @@ slogVerifyBlocks
     -> m (Either Text (OldestFirst NE SlogUndo))
 slogVerifyBlocks genesisConfig curSlot blocks = runExceptT $ do
     era <- getConsensusEra
-    eos <- getEpochOrSlot <$> DB.getTipHeader
+    currentEos <- getEpochOrSlot <$> DB.getTipHeader
+    let cutoffEos = configEpochCutoff $ genesisConfig
     logInfo $ sformat ("slogVerifyBlocks: Consensus era is " % shown) era
-    logInfo $ sformat ("slogVerifyBlocks: Current `EpochOrSlot` is " % shown) eos
+    logInfo $ sformat ("slogVerifyBlocks: Current `EpochOrSlot` is " % shown) currentEos
+    logInfo $ sformat ("slogVerifyBlocks: Cutoff `EpochOrSlot` is " % shown) cutoffEos
     (adoptedBV, adoptedBVD) <- lift getAdoptedBVFull
     let dataMustBeKnown = mustDataBeKnown adoptedBV
     let headEpoch = blocks ^. _Wrapped . _neHead . epochIndexL
@@ -163,7 +165,7 @@ slogVerifyBlocks genesisConfig curSlot blocks = runExceptT $ do
     verResToMonadError formatAllErrors $
         verifyBlocks
             genesisConfig
-            eos
+            currentEos
             curSlot
             dataMustBeKnown
             adoptedBVD

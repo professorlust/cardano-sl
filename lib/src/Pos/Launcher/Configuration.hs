@@ -223,7 +223,10 @@ withConfigurations mAssetLockPath dumpGenesisPath dumpConfig cfo act = do
         (cfoSystemStart cfo)
         (cfoSeed cfo)
         (ccReqNetMagic cfg)
+        (ccAttResEpoch cfg)
+        (ccAddrAttSize cfg)
         (ccGenesis cfg)
+
     withUpdateConfiguration (ccUpdate cfg) $
         withSscConfiguration (ccSsc cfg) $
         withDlgConfiguration (ccDlg cfg) $

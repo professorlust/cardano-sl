@@ -25,6 +25,7 @@ import           Universum
 
 import qualified Data.Aeson as J
 import qualified Data.Set as Set
+import           Numeric.Natural (Natural)
 
 import           Ntp.Client (NtpConfiguration)
 
@@ -39,6 +40,7 @@ import           Pos.Chain.Txp (TxpConfiguration (..))
 import           Pos.Chain.Update (BlockVersionData, HasUpdateConfiguration,
                      withUpdateConfiguration)
 import           Pos.Configuration (HasNodeConfiguration, withNodeConfiguration)
+import           Pos.Core.Slotting (EpochIndex (..), EpochOrSlot (..))
 import           Pos.Crypto (ProtocolMagic)
 import           Pos.Launcher.Configuration (Configuration (..),
                      HasConfigurations)
@@ -60,6 +62,12 @@ defaultTestGenesisSpec = case ccGenesis defaultTestConf of
 
 defaultTestBlockVersionData :: BlockVersionData
 defaultTestBlockVersionData = gsBlockVersionData defaultTestGenesisSpec
+
+dummyCutOff :: Natural
+dummyCutOff = 10000000
+
+dummyEpochOrSlot :: EpochOrSlot
+dummyEpochOrSlot = EpochOrSlot . Left $ EpochIndex 999999999
 
 -- | This constraint requires all configurations which are not
 -- always hardcoded in tests (currently).
@@ -90,7 +98,7 @@ withDefDlgConfiguration :: (HasDlgConfiguration => r) -> r
 withDefDlgConfiguration = withDlgConfiguration (ccDlg defaultTestConf)
 
 withDefConfiguration :: (Genesis.Config -> r) -> r
-withDefConfiguration f = f $ mkConfig 0 defaultTestGenesisSpec
+withDefConfiguration f = f $ mkConfig 0 defaultTestGenesisSpec dummyEpochOrSlot dummyCutOff
 
 withStaticConfigurations :: (HasStaticConfigurations => TxpConfiguration -> NtpConfiguration -> r) -> r
 withStaticConfigurations patak =
@@ -124,7 +132,7 @@ withProvidedMagicConfig
 withProvidedMagicConfig pm f = withStaticConfigurations (f overriddenGenesisConfig)
   where
     overriddenGenesisConfig :: Genesis.Config
-    overriddenGenesisConfig = mkConfig 0 overriddenGenesisSpec
+    overriddenGenesisConfig = mkConfig 0 overriddenGenesisSpec dummyEpochOrSlot dummyCutOff
     --
     overriddenGenesisSpec :: GenesisSpec
     overriddenGenesisSpec = updateGS defaultTestGenesisSpec
